@@ -25,8 +25,10 @@ MongoDBReader通过Datax框架从MongoDB并行的读取数据，通过主控的J
 	                        "address": ["127.0.0.1:27017"],
 	                        "userName": "",
 	                        "userPassword": "",
+                          "authDb": "admin",
 	                        "dbName": "tag_per_data",
 	                        "collectionName": "tag_data12",
+                          "isJson": "true",
 	                        "column": [
 	                            {
 	                                "name": "unique_id",
@@ -54,13 +56,13 @@ MongoDBReader通过Datax框架从MongoDB并行的读取数据，通过主控的J
 	                            },
 	                            {
 	                                "name": "frontcat_id",
-	                                "type": "Array",
-	                                "spliter": ""
+	                                "type": "array",
+	                                "splitter": ""
 	                            },
 	                            {
 	                                "name": "categoryid",
-	                                "type": "Array",
-	                                "spliter": ""
+	                                "type": "array",
+	                                "splitter": ""
 	                            },
 	                            {
 	                                "name": "gmt_create",
@@ -68,8 +70,8 @@ MongoDBReader通过Datax框架从MongoDB并行的读取数据，通过主控的J
 	                            },
 	                            {
 	                                "name": "taglist",
-	                                "type": "Array",
-	                                "spliter": " "
+	                                "type": "array",
+	                                "splitter": " "
 	                            },
 	                            {
 	                                "name": "property",
@@ -124,16 +126,18 @@ MongoDBReader通过Datax框架从MongoDB并行的读取数据，通过主控的J
         }
 #### 4 参数说明
 
-* address： MongoDB的数据地址信息，因为MonogDB可能是个集群，则ip端口信息需要以Json数组的形式给出。【必填】
-* userName：MongoDB的用户名。【选填】
-* userPassword： MongoDB的密码。【选填】
+* address: MongoDB的数据地址信息，因为MonogDB可能是个集群，则ip端口信息需要以Json数组的形式给出。【必填】
+* userName: MongoDB的用户名。【选填】
+* userPassword: MongoDB的密码。【选填】
 * authDb: MongoDB认证数据库【选填】
-* collectionName： MonogoDB的集合名。【必填】
-* column：MongoDB的文档列名。【必填】
-* name：Column的名字。【必填】
-* type：Column的类型。【选填】
-* splitter：因为MongoDB支持数组类型，但是Datax框架本身不支持数组类型，所以mongoDB读出来的数组类型要通过这个分隔符合并成字符串。【选填】
+* dbName: MongoDB查询集合所在的数据库【必填】
+* collectionName: MonogoDB的集合名。【必填】
+* column: MongoDB的文档列名。【必填】
+	* name: Column的名字。【必填】
+	* type: Column的类型。【选填】
+	* splitter: 因为MongoDB支持数组类型，但是Datax框架本身不支持数组类型，所以mongoDB读出来的数组类型要通过这个分隔符合并成字符串。【选填】
 * query: MongoDB的额外查询条件。【选填】
+* isJson: 是否将Document 转为 JSON `[true | 1]`【选填】
 
 #### 5 类型转换
 

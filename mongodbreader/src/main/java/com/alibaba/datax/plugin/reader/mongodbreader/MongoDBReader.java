@@ -1,10 +1,6 @@
 package com.alibaba.datax.plugin.reader.mongodbreader;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import com.alibaba.datax.common.element.BoolColumn;
 import com.alibaba.datax.common.element.DateColumn;
@@ -29,6 +25,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.bson.json.JsonWriterSettings;
+import org.bson.json.StrictJsonWriter;
 import org.bson.types.ObjectId;
 
 /**
@@ -92,6 +90,7 @@ public class MongoDBReader extends Reader {
         private Object lowerBound = null;
         private Object upperBound = null;
         private boolean isObjectId = true;
+        private String isJson = null;
 
         @Override
         public void startRead(RecordSender recordSender) {
@@ -105,6 +104,13 @@ public class MongoDBReader extends Reader {
             MongoDatabase db = mongoClient.getDatabase(database);
             MongoCollection col = db.getCollection(this.collection);
 
+            JsonWriterSettings settings = JsonWriterSettings.builder().int64Converter((Long value, StrictJsonWriter write) -> {
+                write.writeString(Long.toString(value));
+            }).int32Converter((Integer value, StrictJsonWriter write) -> {
+                write.writeString(Integer.toString(value));
+            }).doubleConverter((Double value, StrictJsonWriter write) -> {
+                write.writeString(Double.toString(value));
+            }).build();
             MongoCursor<Document> dbCursor = null;
             Document filter = new Document();
             if (lowerBound.equals("min")) {
@@ -162,6 +168,8 @@ public class MongoDBReader extends Reader {
                         record.addColumn(new LongColumn((Integer) tempCol));
                     }else if (tempCol instanceof Long) {
                         record.addColumn(new LongColumn((Long) tempCol));
+                    } else if (tempCol instanceof Document && KeyConstant.isJson(isJson)) {
+                        record.addColumn(new StringColumn(((Document)tempCol).toJson(settings)));
                     } else {
                         if(KeyConstant.isArrayType(column.getString(KeyConstant.COLUMN_TYPE))) {
                             String splitter = column.getString(KeyConstant.COLUMN_SPLITTER);
@@ -170,7 +178,21 @@ public class MongoDBReader extends Reader {
                                     MongoDBReaderErrorCode.ILLEGAL_VALUE.getDescription());
                             } else {
                                 ArrayList array = (ArrayList)tempCol;
-                                String tempArrayStr = Joiner.on(splitter).join(array);
+                                String tempArrayStr = "";
+                                if (KeyConstant.isJson(isJson)) {
+                                    StringBuffer buffer = new StringBuffer();
+                                    buffer.append("[");
+                                    for (Object map : array) {
+                                        buffer.append(((Document)map).toJson(settings)).append(",");
+                                    }
+                                    buffer.delete(buffer.length()-1, buffer.length());
+                                    buffer.append("]");
+
+                                    tempArrayStr = buffer.toString();
+                                } else {
+                                    tempArrayStr = Joiner.on(splitter).join(array);
+                                }
+
                                 record.addColumn(new StringColumn(tempArrayStr));
                             }
                         } else {
@@ -201,6 +223,7 @@ public class MongoDBReader extends Reader {
             this.lowerBound = readerSliceConfig.get(KeyConstant.LOWER_BOUND);
             this.upperBound = readerSliceConfig.get(KeyConstant.UPPER_BOUND);
             this.isObjectId = readerSliceConfig.getBool(KeyConstant.IS_OBJECTID);
+            this.isJson = readerSliceConfig.getString(KeyConstant.IS_JSON);
         }
 
         @Override

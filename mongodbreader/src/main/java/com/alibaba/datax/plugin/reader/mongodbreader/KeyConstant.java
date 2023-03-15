@@ -1,5 +1,7 @@
 package com.alibaba.datax.plugin.reader.mongodbreader;
 
+import java.util.Objects;
+
 /**
  * Created by jianying.wcj on 2015/3/17 0017.
  */
@@ -61,6 +63,10 @@ public class KeyConstant {
      */
     public static final String COLUMN_SPLITTER = "splitter";
     /**
+     * 列是否转化为JSON
+     */
+    public static final String IS_JSON = "isJson";
+    /**
      * 跳过的列数
      */
     public static final String SKIP_COUNT = "skipCount";
@@ -94,4 +100,12 @@ public class KeyConstant {
     public static boolean isDocumentType(String type) {
         return type.startsWith(DOCUMENT_TYPE);
     }
+
+    public static boolean isJson(String isJson) {
+        if (Objects.isNull(isJson)) {
+            return false;
+        }
+        return "true".equals(isJson) || "1".equals(isJson);
+    }
+
 }
